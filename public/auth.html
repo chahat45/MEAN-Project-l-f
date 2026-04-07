@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Lost & Found</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+
+  <div class="row justify-content-center">
+    <div class="col-md-4">
+
+      <!-- Login -->
+      <div class="card shadow mb-3" id = "loginBox">
+        <div class="card-header bg-dark text-white text-center">
+          Login
+        </div>
+
+        <div class="card-body">
+          <input id="loginRoll" class="form-control mb-2" placeholder="Roll No">
+          <input id="loginPass" type="password" class="form-control mb-2" placeholder="Password">
+
+          <button class="btn btn-primary w-100" onclick="login()">Login</button>
+
+          <p class="text-center mt-2">
+            New user? 
+            <a href="#" onclick="showRegister()">Register</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Register -->
+      <div class="card shadow" id="registerBox" style="display:none;">
+        <div class="card-header bg-success text-white text-center">
+          Register
+        </div>
+
+        <div class="card-body">
+          <input id="regRoll" class="form-control mb-2" placeholder="Roll No">
+          <input id="regPass" type="password" class="form-control mb-2" placeholder="Password">
+
+          <select id="regRole" class="form-control mb-2">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+
+          <button class="btn btn-success w-100" onclick="register()">Register</button>
+          <br>
+          <p class="text-center mt-2">
+  Already have account?
+  <a href="#" onclick="showLogin()">Login</a>
+</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+
+// Show register form
+function showRegister(){
+  document.getElementById("registerBox").style.display = "block";
+  document.getElementById("loginBox").style.display="none";
+}
+//login display
+function showLogin(){
+  document.getElementById("registerBox").style.display = "none";
+  document.getElementById("loginBox").style.display = "block";
+}
+// Register
+async function register(){
+
+  let data = {
+    rollNo: document.getElementById("regRoll").value,
+    password: document.getElementById("regPass").value,
+    role: document.getElementById("regRole").value
+  };
+
+  try {
+    let res = await fetch("/auth/register",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json"},
+      body: JSON.stringify(data)
+    });
+
+    let msg = await res.text();
+    alert(msg);
+
+  } catch(err){
+    console.log(err);
+    alert("Error connecting to server");
+  }
+}
+// Login
+async function login(){
+
+  let data = {
+    rollNo: document.getElementById("loginRoll").value,
+    password: document.getElementById("loginPass").value
+  };
+
+  let res = await fetch("/auth/login",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body: JSON.stringify(data)
+  });
+
+  let result = await res.json();
+
+  if(result.role){
+
+    // store user
+    localStorage.setItem("user", JSON.stringify(result));
+
+    // redirect to main page
+    window.location.href = "index.html";
+
+  } else {
+    alert("Invalid Login");
+  }
+}
+
+</script>
+
+</body>
+</html>

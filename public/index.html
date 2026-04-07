@@ -9,6 +9,7 @@
 
 <body class="bg-light">
 
+<!--old-->
 <div class="container mt-5">
 
   <div class="text-center mb-4">
@@ -69,6 +70,7 @@
     <div class="card-body">
 
       <button class="btn btn-primary mb-3" onclick="loadItems()">Refresh</button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
 
       <div class="table-responsive">
         <table class="table table-bordered table-hover text-center">
@@ -94,6 +96,13 @@
 </div>
 
 <script>
+
+let user = localStorage.getItem("user");
+
+if(!user){
+  window.location.href = "auth.html";
+}
+
 
 const baseUrl = "/items";
 
@@ -163,6 +172,58 @@ async function deleteItem(id){
   loadItems();
 }
 
+function logout(){
+  localStorage.removeItem("user");
+  window.location.href = "auth.html";
+}
+//new
+/*
+function showRegister(){
+  document.getElementById("registerBox").style.display = "block";
+}
+//register
+async function register(){
+
+  let data = {
+    rollNo: document.getElementById("regRoll").value,
+    password: document.getElementById("regPass").value,
+    role: document.getElementById("regRole").value
+  };
+
+  let res = await fetch("/auth/register",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body: JSON.stringify(data)
+  });
+
+  let msg = await res.text();
+  alert(msg);
+}
+//login
+async function login(){
+
+  let data = {
+    rollNo: document.getElementById("loginRoll").value,
+    password: document.getElementById("loginPass").value
+  };
+
+  let res = await fetch("/auth/login",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json"},
+    body: JSON.stringify(data)
+  });
+
+  let result = await res.json();
+
+  if(result.role === "admin"){
+    alert("Welcome Admin");
+  } else if(result.role === "user"){
+    alert("Welcome User");
+  } else {
+    alert("Invalid Login");
+  }
+}
+*/
 </script>
 
 </body>

@@ -25,3 +25,8 @@ app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
 
+//login wale
+
+const authRoutes = require("./routes/auth");
+
+app.use("/auth", authRoutes);
