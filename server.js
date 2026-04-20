@@ -6,7 +6,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // help to load html
+app.use(express.static("public")); // help to load html and css
+// sirf public folder is accesible h to the browser
 
 //connection to database : mongo db (mongoose)
 mongoose.connect("mongodb://127.0.0.1:27017/lostfound")
