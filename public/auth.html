@@ -1,59 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="app">
 <head>
   <meta charset="UTF-8">
   <title>Login - Lost & Found</title>
+
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="auth.css" >
+
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="auth.css">
+
+  <!-- AngularJS CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
 </head>
 
-<body>
+<body ng-controller="AuthController">
 
-<div class="container mt-5">
+<div class="container">
 
   <div class="row justify-content-center">
     <div class="col-md-4">
 
-      <!-- Login -->
-      <div class="card shadow mb-3" id = "loginBox">
-        <div class="card-header bg-dark text-white text-center">
+      <!-- LOGIN -->
+      <div class="card shadow mb-3" ng-show="showLogin" style="margin-top: 100px;">
+
+        <div class="card-header text-center text-white" style="background-color: black;">
           Login
         </div>
 
         <div class="card-body">
-          <input id="loginRoll" class="form-control mb-2" placeholder="Roll No">
-          <input id="loginPass" type="password" class="form-control mb-2" placeholder="Password">
 
-          <button class="btn btn-danger w-100" onclick="login()">Login</button>
+          <input ng-model="loginData.rollNo" class="form-control mb-2" placeholder="Roll No">
+          <input ng-model="loginData.password" type="password" class="form-control mb-2" placeholder="Password">
+
+          <button class="btn btn-danger w-100" ng-click="login()">Login</button>
 
           <p class="text-center mt-2">
-            New user? 
-            <a href="#" onclick="showRegister()">Register</a>
+            New user?
+            <a href="" ng-click="toggle()">Register</a>
           </p>
+
         </div>
       </div>
 
-      <!-- Register -->
-      <div class="card shadow" id="registerBox" style="display:none;">
-        <div class="card-header bg-success text-white text-center">
+      <!-- REGISTER -->
+      <div class="card shadow" ng-show="!showLogin" style="margin-top: 100px;">
+
+        <div class="card-header text-center text-white" style="background-color: black;">
           Register
         </div>
 
         <div class="card-body">
-          <input id="regRoll" class="form-control mb-2" placeholder="Roll No">
-          <input id="regPass" type="password" class="form-control mb-2" placeholder="Password">
 
-          <select id="regRole" class="form-control mb-2">
+          <input ng-model="registerData.rollNo" class="form-control mb-2" placeholder="Roll No">
+          <input ng-model="registerData.password" type="password" class="form-control mb-2" placeholder="Password">
+
+          <select ng-model="registerData.role" class="form-control mb-2">
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>
 
-          <button class="btn btn-success w-100" onclick="register()">Register</button>
-          <br>
+          <button class="btn btn-danger w-100" ng-click="register()">Register</button>
+
           <p class="text-center mt-2">
-  Already have account?
-  <a href="#" onclick="showLogin()">Login</a>
-</p>
+            Already have account?
+            <a href="" ng-click="toggle()">Login</a>
+          </p>
+
         </div>
       </div>
 
@@ -64,68 +77,58 @@
 
 <script>
 
-// Show register form
-function showRegister(){
-  document.getElementById("registerBox").style.display = "block";
-  document.getElementById("loginBox").style.display="none";
-}
-//login display
-function showLogin(){
-  document.getElementById("registerBox").style.display = "none";
-  document.getElementById("loginBox").style.display = "block";
-}
-// Register
-async function register(){
+var app = angular.module("app", []);
 
-  let data = {
-    rollNo: document.getElementById("regRoll").value,
-    password: document.getElementById("regPass").value,
-    role: document.getElementById("regRole").value
+app.controller("AuthController", function($scope, $http){
+
+  $scope.showLogin = true;
+
+  $scope.loginData = {};
+  $scope.registerData = { role: "user" };
+
+  // Toggle login/register
+  $scope.toggle = function(){
+    $scope.showLogin = !$scope.showLogin;
   };
 
-  try {
-    let res = await fetch("/auth/register",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json"},
-      body: JSON.stringify(data)
+  // Register
+  $scope.register = function(){
+
+    $http.post("/auth/register", $scope.registerData)
+    .then(function(res){
+      alert(res.data);
+      $scope.showLogin = true;
+    })
+    .catch(function(err){
+      alert("Error");
     });
 
-    let msg = await res.text();
-    alert(msg);
-
-  } catch(err){
-    console.log(err);
-    alert("Error connecting to server");
-  }
-}
-// Login
-async function login(){
-
-  let data = {
-    rollNo: document.getElementById("loginRoll").value,
-    password: document.getElementById("loginPass").value
   };
 
-  let res = await fetch("/auth/login",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json"},
-    body: JSON.stringify(data)
-  });
+  // Login
+  $scope.login = function(){
 
-  let result = await res.json();
+    $http.post("/auth/login", $scope.loginData)
+    .then(function(res){
 
-  if(result.role){
+      if(res.data.role){
 
-    // store user
-    localStorage.setItem("user", JSON.stringify(result));
+        localStorage.setItem("user", JSON.stringify(res.data));
 
-    // redirect to main page
-    window.location.href = "index.html";
+        window.location.href = "index.html";
 
-  } else {
-    alert("Invalid Login");
-  }
-}
+      } else {
+        alert("Invalid login");
+      }
+
+    })
+    .catch(function(err){
+      alert("Server error");
+    });
+
+  };
+
+});
 
 </script>
 
