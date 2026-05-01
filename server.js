@@ -1,33 +1,26 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const connectDB = require('./config/db');
 
 const app = express();
+connectDB();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // help to load html and css
-// sirf public folder is accesible h to the browser
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-//connection to database : mongo db (mongoose)
-mongoose.connect("mongodb://127.0.0.1:27017/lostfound")
-.then(() => {
-  console.log("MongoDB Connected");
-})
-.catch((err) => {
-  console.log(err);
+// API routes
+app.use('/api/auth',  require('./routes/auth'));
+app.use('/api/items', require('./routes/items'));
+app.use('/api/admin', require('./routes/admin'));
+
+// Serve Angular frontend from public/
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// importing routes
-const itemRoutes = require("./routes/items");
-app.use("/items", itemRoutes);
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
-});
-
-//login wale
-
-const authRoutes = require("./routes/auth");
-
-app.use("/auth", authRoutes);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));

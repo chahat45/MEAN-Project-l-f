@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="lostFoundApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost & Found Portal</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- AngularJS 1.x CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-route.min.js"></script>
+
+  <link rel="stylesheet" href="/styles.css">
+  <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" ng-controller="NavCtrl">
+    <div class="container">
+      <a class="navbar-brand" href="#!/">
+        <i class="fas fa-search-location me-2" style="color:#a78bfa"></i>Lost<span>&Found</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navMenu">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="#!/"><i class="fas fa-home me-1"></i>Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#!/items"><i class="fas fa-list me-1"></i>Browse</a></li>
+          <li class="nav-item" ng-if="isLoggedIn">
+            <a class="nav-link" href="#!/add-item"><i class="fas fa-plus me-1"></i>Report Item</a>
+          </li>
+          <li class="nav-item" ng-if="isLoggedIn">
+            <a class="nav-link" href="#!/my-items"><i class="fas fa-box me-1"></i>My Items</a>
+          </li>
+          <li class="nav-item" ng-if="isAdmin">
+            <a class="nav-link text-warning" href="#!/admin"><i class="fas fa-shield-alt me-1"></i>Admin</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2" ng-if="!isLoggedIn">
+          <a href="#!/login" class="btn btn-outline-light btn-sm">Login</a>
+          <a href="#!/register" class="btn btn-primary btn-sm">Register</a>
+        </div>
+        <div class="d-flex align-items-center gap-3" ng-if="isLoggedIn">
+          <div class="d-flex align-items-center gap-2">
+            <div class="avatar">{{currentUser.name.charAt(0).toUpperCase()}}</div>
+            <div>
+              <div style="color:white;font-size:.85rem;font-weight:600">{{currentUser.name}}</div>
+              <div style="color:#adb5bd;font-size:.72rem;text-transform:capitalize">{{currentUser.role}}</div>
+            </div>
+          </div>
+          <button class="btn btn-outline-danger btn-sm" ng-click="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN VIEW -->
+  <div ng-view></div>
+
+  <!-- TEMPLATES -->
+
+  <!-- HOME -->
+  <script type="text/ng-template" id="home.html">
+    <div>
+      <section class="hero">
+        <div class="container position-relative" style="z-index:1">
+          <div class="row align-items-center">
+            <div class="col-lg-7">
+              <span class="badge bg-primary bg-opacity-25 text-light mb-3 px-3 py-2">
+                <i class="fas fa-star me-1"></i> Trusted Community Platform
+              </span>
+              <h1>Find What's <span class="text-accent">Lost.</span><br>Return What's <span class="text-green">Found.</span></h1>
+              <p class="lead mt-3 mb-4">Connect people who've lost belongings with those who've found them. Simple, fast, and secure.</p>
+              <div class="d-flex gap-3 flex-wrap">
+                <a href="#!/items" class="btn btn-primary btn-lg px-4">
+                  <i class="fas fa-search me-2"></i>Browse Items
+                </a>
+                <a href="#!/{{isLoggedIn ? 'add-item' : 'register'}}" class="btn btn-outline-light btn-lg px-4">
+                  <i class="fas fa-plus me-2"></i>Report Item
+                </a>
+              </div>
+            </div>
+            <div class="col-lg-5 mt-5 mt-lg-0 d-none d-lg-block">
+              <div class="d-flex flex-column gap-3">
+                <div class="card bg-white bg-opacity-10 border-0 text-white p-3 d-flex flex-row align-items-center gap-3" style="border-radius:14px;backdrop-filter:blur(8px)">
+                  <i class="fas fa-search-minus fa-2x" style="color:#f86f6f"></i>
+                  <div><strong>Lost Something?</strong><p class="mb-0 small opacity-75">Post it and get community help</p></div>
+                </div>
+                <div class="card bg-white bg-opacity-10 border-0 text-white p-3 d-flex flex-row align-items-center gap-3" style="border-radius:14px;backdrop-filter:blur(8px)">
+                  <i class="fas fa-hand-holding-heart fa-2x" style="color:#43cea2"></i>
+                  <div><strong>Found Something?</strong><p class="mb-0 small opacity-75">Help reunite it with its owner</p></div>
+                </div>
+                <div class="card bg-white bg-opacity-10 border-0 text-white p-3 d-flex flex-row align-items-center gap-3" style="border-radius:14px;backdrop-filter:blur(8px)">
+                  <i class="fas fa-gift fa-2x" style="color:#f6c90e"></i>
+                  <div><strong>Earn Rewards</strong><p class="mb-0 small opacity-75">Get rewarded for your honesty</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <div class="container" style="margin-top:-36px; position:relative; z-index:10">
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="stat-card card h-100">
+              <div class="stat-icon" style="background:rgba(78,84,200,0.1)"><i class="fas fa-box-open" style="color:#4e54c8"></i></div>
+              <div class="fs-2 fw-800">{{recentItems.length}}</div>
+              <div class="text-muted small">Open Listings</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card card h-100">
+              <div class="stat-icon" style="background:rgba(248,111,111,0.1)"><i class="fas fa-search-minus" style="color:#f86f6f"></i></div>
+              <div class="fs-2 fw-800">{{lostCount}}</div>
+              <div class="text-muted small">Lost Items</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card card h-100">
+              <div class="stat-icon" style="background:rgba(67,206,162,0.1)"><i class="fas fa-hand-holding" style="color:#43cea2"></i></div>
+              <div class="fs-2 fw-800">{{foundCount}}</div>
+              <div class="text-muted small">Found Items</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card card h-100">
+              <div class="stat-icon" style="background:rgba(246,201,14,0.1)"><i class="fas fa-users" style="color:#d97706"></i></div>
+              <div class="fs-2 fw-800">100+</div>
+              <div class="text-muted small">Community</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HOW IT WORKS -->
+      <div class="container py-5 mt-3">
+        <h2 class="text-center fw-800 mb-5">How It <span style="color:var(--primary)">Works</span></h2>
+        <div class="row g-4 text-center">
+          <div class="col-6 col-md-3" ng-repeat="step in steps">
+            <div class="card border-0 shadow-sm p-4 h-100" style="border-radius:14px">
+              <div class="stat-icon mx-auto mb-3" style="background:rgba(78,84,200,0.1)">
+                <i class="{{step.icon}}" style="color:var(--primary)"></i>
+              </div>
+              <div class="text-muted small mb-2 fw-600">STEP 0{{$index+1}}</div>
+              <h6 class="fw-700">{{step.title}}</h6>
+              <p class="small text-muted mb-0">{{step.desc}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT ITEMS -->
+      <div class="container pb-5" ng-if="recentItems.length > 0">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fw-800 mb-0">Recent <span style="color:var(--primary)">Listings</span></h2>
+          <a href="#!/items" class="btn btn-outline-primary btn-sm">View All <i class="fas fa-arrow-right ms-1"></i></a>
+        </div>
+        <div class="row g-3">
+          <div class="col-sm-6 col-lg-4" ng-repeat="item in recentItems | limitTo:6">
+            <div class="item-card card h-100" ng-click="goToItem(item._id)">
+              <img ng-if="item.image" ng-src="{{item.image}}" class="card-img-top" alt="{{item.title}}">
+              <div ng-if="!item.image" class="no-img"><i class="fas fa-image"></i></div>
+              <div class="card-body">
+                <div class="d-flex gap-2 mb-2">
+                  <span class="badge" ng-class="item.type==='lost' ? 'badge-lost' : 'badge-found'">
+                    {{item.type | uppercase}}
+                  </span>
+                  <span class="badge badge-open">{{item.status}}</span>
+                </div>
+                <h6 class="fw-700 mb-1">{{item.title}}</h6>
+                <p class="small text-muted mb-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{item.description}}</p>
+                <div class="small text-muted">
+                  <i class="fas fa-map-marker-alt me-1" style="color:var(--primary)"></i>{{item.location}}
+                </div>
+                <div ng-if="item.reward" class="small mt-1" style="color:#d97706"><i class="fas fa-gift me-1"></i>{{item.reward}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="background:linear-gradient(135deg,var(--primary),#a78bfa);padding:70px 0;text-align:center;color:white">
+        <h2 class="fw-800 mb-2">Ready to help your community?</h2>
+        <p class="mb-4 opacity-75">Join hundreds who have already found their lost items.</p>
+        <a href="#!/{{isLoggedIn ? 'add-item' : 'register'}}" class="btn btn-light btn-lg px-5 fw-600" style="color:var(--primary)">
+          Get Started <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+      </div>
+    </div>
+  </script>
+
+  <!-- LOGIN -->
+  <script type="text/ng-template" id="login.html">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <div class="mb-3"><i class="fas fa-search-location fa-3x" style="color:var(--primary)"></i></div>
+          <h2>Welcome Back</h2>
+          <p class="text-muted">Sign in to your account</p>
+        </div>
+        <div class="alert alert-danger" ng-if="error"><i class="fas fa-exclamation-circle me-2"></i>{{error}}</div>
+        <form ng-submit="login()">
+          <div class="mb-3">
+            <label class="form-label">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              <input type="email" class="form-control" ng-model="email" placeholder="you@example.com" required>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Password</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" ng-model="password" placeholder="Min 6 characters" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-600" ng-disabled="loading">
+            <span ng-if="!loading"><i class="fas fa-sign-in-alt me-2"></i>Sign In</span>
+            <span ng-if="loading"><i class="fas fa-spinner fa-spin me-2"></i>Signing in...</span>
+          </button>
+        </form>
+        <p class="text-center mt-3 text-muted small">Don't have an account? <a href="#!/register" style="color:var(--primary);font-weight:600">Register</a></p>
+        <div class="mt-3 p-2 rounded text-center small" style="background:#ede9ff;color:var(--primary)">
+          <strong>Admin Demo:</strong> admin@demo.com / admin123
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <!-- REGISTER -->
+  <script type="text/ng-template" id="register.html">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="text-center mb-4">
+          <div class="mb-3"><i class="fas fa-user-plus fa-3x" style="color:var(--accent)"></i></div>
+          <h2>Create Account</h2>
+          <p class="text-muted">Join our community for free</p>
+        </div>
+        <div class="alert alert-danger" ng-if="error"><i class="fas fa-exclamation-circle me-2"></i>{{error}}</div>
+        <div class="alert alert-success" ng-if="success"><i class="fas fa-check-circle me-2"></i>{{success}}</div>
+        <form ng-submit="register()">
+          <div class="row g-3 mb-3">
+            <div class="col-12">
+              <label class="form-label">Full Name</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" ng-model="name" placeholder="John Doe" required>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input type="email" class="form-control" ng-model="email" placeholder="you@example.com" required>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Phone (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input type="tel" class="form-control" ng-model="phone" placeholder="+91 XXXXX XXXXX">
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input type="password" class="form-control" ng-model="password" placeholder="Min 6 chars" required>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Confirm Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input type="password" class="form-control" ng-model="confirmPassword" placeholder="Re-enter" required>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-600" ng-disabled="loading">
+            <span ng-if="!loading"><i class="fas fa-user-plus me-2"></i>Create Account</span>
+            <span ng-if="loading"><i class="fas fa-spinner fa-spin me-2"></i>Creating...</span>
+          </button>
+        </form>
+        <p class="text-center mt-3 text-muted small">Already have an account? <a href="#!/login" style="color:var(--primary);font-weight:600">Sign in</a></p>
+      </div>
+    </div>
+  </script>
+
+  <!-- ITEMS LIST -->
+  <script type="text/ng-template" id="items.html">
+    <div>
+      <div class="page-header">
+        <div class="container">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h2 class="mb-1"><i class="fas fa-list me-2"></i>Browse Items</h2>
+              <p class="mb-0 opacity-75 small">{{items.length}} open listings</p>
+            </div>
+            <a href="#!/add-item" class="btn btn-primary" ng-if="isLoggedIn"><i class="fas fa-plus me-2"></i>Report Item</a>
+          </div>
+        </div>
+      </div>
+      <div class="container pb-5">
+        <!-- FILTERS -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius:12px">
+          <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-md-5">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                  <input type="text" class="form-control" ng-model="search" placeholder="Search title, location..." ng-change="loadItems()">
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <select class="form-select" ng-model="filterType" ng-change="loadItems()">
+                  <option value="">All Types</option>
+                  <option value="lost">Lost</option>
+                  <option value="found">Found</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <select class="form-select" ng-model="filterCategory" ng-change="loadItems()">
+                  <option value="">All Categories</option>
+                  <option ng-repeat="c in categories" value="{{c}}">{{c}}</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-1">
+                <button class="btn btn-outline-secondary w-100" ng-click="clearFilters()"><i class="fas fa-times"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="spinner-wrap" ng-if="loading"><div class="spinner-border text-primary"></div></div>
+
+        <div class="empty-state" ng-if="!loading && items.length === 0">
+          <i class="fas fa-box-open d-block"></i>
+          <h5>No items found</h5>
+          <p>Try adjusting filters or <a href="#!/add-item">report an item</a></p>
+        </div>
+
+        <div class="row g-3" ng-if="!loading">
+          <div class="col-sm-6 col-lg-4" ng-repeat="item in items">
+            <div class="item-card card h-100" ng-click="goToItem(item._id)">
+              <img ng-if="item.image" ng-src="{{item.image}}" class="card-img-top" alt="{{item.title}}">
+              <div ng-if="!item.image" class="no-img"><i class="fas fa-image"></i></div>
+              <div class="card-body">
+                <div class="d-flex gap-2 mb-2 flex-wrap">
+                  <span class="badge rounded-pill" ng-class="item.type==='lost' ? 'badge-lost' : 'badge-found'">
+                    <i ng-class="item.type==='lost' ? 'fas fa-search-minus' : 'fas fa-hand-holding'" class="me-1"></i>{{item.type}}
+                  </span>
+                  <span class="badge rounded-pill badge-open">{{item.status}}</span>
+                </div>
+                <div class="small text-primary fw-600 mb-1"><i class="fas fa-tag me-1"></i>{{item.category}}</div>
+                <h6 class="fw-700 mb-1">{{item.title}}</h6>
+                <p class="small text-muted mb-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{item.description}}</p>
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                  <span class="small text-muted"><i class="fas fa-map-marker-alt me-1" style="color:var(--primary)"></i>{{item.location}}</span>
+                  <span ng-if="item.reward" class="small" style="color:#d97706"><i class="fas fa-gift me-1"></i>Reward</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <!-- ADD ITEM -->
+  <script type="text/ng-template" id="add-item.html">
+    <div>
+      <div class="page-header">
+        <div class="container">
+          <h2><i class="fas fa-plus-circle me-2"></i>Report an Item</h2>
+          <p class="mb-0 opacity-75 small">Fill in the details of your lost or found item</p>
+        </div>
+      </div>
+      <div class="container pb-5" style="max-width:700px">
+        <div class="alert alert-success" ng-if="success"><i class="fas fa-check-circle me-2"></i>{{success}}</div>
+        <div class="alert alert-danger" ng-if="error"><i class="fas fa-exclamation-circle me-2"></i>{{error}}</div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:16px">
+          <div class="card-body p-4">
+
+            <!-- TYPE SELECTOR -->
+            <div class="row g-3 mb-4">
+              <div class="col-6">
+                <div class="type-btn" ng-class="itemType==='lost' ? 'lost-active' : ''" ng-click="itemType='lost'">
+                  <i class="fas fa-search-minus fa-2x mb-2 d-block" style="color:#f86f6f"></i>
+                  <strong>Lost Item</strong>
+                  <p class="small text-muted mb-0 mt-1">I lost something</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="type-btn" ng-class="itemType==='found' ? 'found-active' : ''" ng-click="itemType='found'">
+                  <i class="fas fa-hand-holding-heart fa-2x mb-2 d-block" style="color:#43cea2"></i>
+                  <strong>Found Item</strong>
+                  <p class="small text-muted mb-0 mt-1">I found something</p>
+                </div>
+              </div>
+            </div>
+
+            <form ng-submit="submitItem()">
+              <div class="row g-3">
+                <div class="col-sm-8">
+                  <label class="form-label">Item Title *</label>
+                  <input type="text" class="form-control" ng-model="title" placeholder="e.g. Black iPhone 14" required>
+                </div>
+                <div class="col-sm-4">
+                  <label class="form-label">Category *</label>
+                  <select class="form-select" ng-model="category" required>
+                    <option ng-repeat="c in categories" value="{{c}}">{{c}}</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Description *</label>
+                  <textarea class="form-control" ng-model="description" rows="3" placeholder="Describe color, brand, features..." required></textarea>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Location *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                    <input type="text" class="form-control" ng-model="location" placeholder="Where lost/found?" required>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <label class="form-label">Date *</label>
+                  <input type="date" class="form-control" ng-model="date" required>
+                </div>
+                <div class="col-12" ng-if="itemType==='lost'">
+                  <label class="form-label">Reward (Optional)</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-gift"></i></span>
+                    <input type="text" class="form-control" ng-model="reward" placeholder="e.g. ₹500 reward">
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Private Note <small class="text-muted fw-400">(Only you & admin see this)</small></label>
+                  <textarea class="form-control" ng-model="internalMessage" rows="2" placeholder="Private collection details, contact preferences..."></textarea>
+                  <div class="small text-primary mt-1"><i class="fas fa-lock me-1"></i>This is private and not shown to others</div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Photo (Optional)</label>
+                  <input type="file" class="form-control" accept="image/*" onchange="angular.element(this).scope().onFileSelect(event)">
+                </div>
+              </div>
+              <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="#!/items" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4" ng-disabled="loading">
+                  <span ng-if="!loading"><i class="fas fa-paper-plane me-2"></i>Submit Report</span>
+                  <span ng-if="loading"><i class="fas fa-spinner fa-spin me-2"></i>Submitting...</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <!-- ITEM DETAIL -->
+  <script type="text/ng-template" id="item-detail.html">
+    <div class="container py-4" ng-if="item">
+      <div class="mb-3"><a href="#!/items" class="text-decoration-none text-muted small"><i class="fas fa-arrow-left me-1"></i>Back to listings</a></div>
+      <div class="alert alert-success" ng-if="success">{{success}}</div>
+      <div class="alert alert-danger" ng-if="error">{{error}}</div>
+
+      <div class="row g-4">
+        <!-- LEFT -->
+        <div class="col-md-5">
+          <img ng-if="item.image" ng-src="{{item.image}}" class="detail-img mb-3" alt="{{item.title}}">
+          <div ng-if="!item.image" class="no-detail-img mb-3"><i class="fas fa-image"></i></div>
+
+          <div class="d-flex gap-2 mb-3">
+            <span class="badge rounded-pill fs-6 px-3 py-2" ng-class="item.type==='lost' ? 'badge-lost' : 'badge-found'">
+              <i ng-class="item.type==='lost' ? 'fas fa-search-minus' : 'fas fa-hand-holding'" class="me-1"></i>{{item.type | uppercase}}
+            </span>
+            <span class="badge rounded-pill fs-6 px-3 py-2" ng-class="{'badge-open': item.status==='open','badge-claimed': item.status==='claimed'}">{{item.status}}</span>
+          </div>
+
+          <!-- Reporter -->
+          <div class="card border-0 shadow-sm mb-3" style="border-radius:12px">
+            <div class="card-body">
+              <h6 class="fw-700 text-muted small text-uppercase mb-3"><i class="fas fa-user me-2"></i>Reported By</h6>
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar">{{item.reportedBy.name.charAt(0).toUpperCase()}}</div>
+                <div>
+                  <div class="fw-700">{{item.reportedBy.name}}</div>
+                  <div class="small text-muted">{{item.reportedBy.email}}</div>
+                  <div class="small text-muted" ng-if="item.reportedBy.phone">{{item.reportedBy.phone}}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Claimer (admin/reporter only) -->
+          <div class="card border-0 shadow-sm mb-3" style="border-radius:12px" ng-if="item.claimedBy && (isReporter || isAdmin)">
+            <div class="card-body">
+              <h6 class="fw-700 text-muted small text-uppercase mb-3"><i class="fas fa-user-check me-2"></i>Claimed By</h6>
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="avatar" style="background:linear-gradient(135deg,#43cea2,#185a9d)">{{item.claimedBy.name.charAt(0).toUpperCase()}}</div>
+                <div>
+                  <div class="fw-700">{{item.claimedBy.name}}</div>
+                  <div class="small text-muted">{{item.claimedBy.email}}</div>
+                </div>
+              </div>
+              <div class="d-flex gap-3 small">
+                <span ng-class="item.reporterConfirmed ? 'text-success' : 'text-muted'">
+                  <i ng-class="item.reporterConfirmed ? 'fas fa-check-circle' : 'fas fa-clock'" class="me-1"></i>Reporter
+                </span>
+                <span ng-class="item.claimerConfirmed ? 'text-success' : 'text-muted'">
+                  <i ng-class="item.claimerConfirmed ? 'fas fa-check-circle' : 'fas fa-clock'" class="me-1"></i>Claimer
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="col-md-7">
+          <div class="small text-primary fw-600 mb-1 text-uppercase"><i class="fas fa-tag me-1"></i>{{item.category}}</div>
+          <h1 class="fw-800 mb-3" style="font-size:1.8rem">{{item.title}}</h1>
+
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <div class="info-box">
+                <div class="small text-muted mb-1 text-uppercase fw-600">Location</div>
+                <div class="fw-600"><i class="fas fa-map-marker-alt me-1" style="color:var(--primary)"></i>{{item.location}}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="info-box">
+                <div class="small text-muted mb-1 text-uppercase fw-600">Date</div>
+                <div class="fw-600"><i class="fas fa-calendar me-1" style="color:var(--primary)"></i>{{item.date | date:'dd MMM yyyy'}}</div>
+              </div>
+            </div>
+            <div class="col-6" ng-if="item.reward">
+              <div class="info-box">
+                <div class="small text-muted mb-1 text-uppercase fw-600">Reward</div>
+                <div class="fw-600" style="color:#d97706"><i class="fas fa-gift me-1"></i>{{item.reward}}</div>
+              </div>
+            </div>
+            <div class="col-6" ng-if="item.venueOfCollection">
+              <div class="info-box">
+                <div class="small text-muted mb-1 text-uppercase fw-600">Collection Venue</div>
+                <div class="fw-600"><i class="fas fa-store me-1" style="color:var(--primary)"></i>{{item.venueOfCollection}}</div>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="fw-700 mb-2">Description</h6>
+          <p class="text-muted mb-4">{{item.description}}</p>
+
+          <!-- Internal Message -->
+          <div class="internal-msg mb-4" ng-if="(isReporter || isAdmin) && item.internalMessage">
+            <div class="fw-700 small mb-1"><i class="fas fa-lock me-2"></i>Private Note (Only you & admin)</div>
+            <p class="mb-0 small">{{item.internalMessage}}</p>
+          </div>
+
+          <!-- ACTIONS -->
+          <div class="d-flex flex-column gap-3">
+
+            <!-- Claim -->
+            <button class="btn btn-primary" ng-if="canClaim" ng-click="claimItem()" ng-disabled="actionLoading">
+              <i class="fas fa-hand-paper me-2"></i>Claim This Item
+            </button>
+
+            <!-- Confirm Box -->
+            <div class="confirm-box" ng-if="item.status==='claimed' && (isReporter || isClaimer)">
+              <p class="small mb-3"><i class="fas fa-info-circle me-2" style="color:var(--accent)"></i>
+                Item is claimed. Both parties must confirm to complete handover and auto-remove this listing.</p>
+              <button class="btn btn-success" ng-if="canConfirm" ng-click="confirmItem()" ng-disabled="actionLoading">
+                <i class="fas fa-check-double me-2"></i>Confirm Receipt / Handover
+              </button>
+              <div class="text-muted small" ng-if="!canConfirm">
+                <i class="fas fa-clock me-1"></i>Waiting for the other party to confirm...
+              </div>
+            </div>
+
+            <!-- Owner actions -->
+            <div class="d-flex gap-2" ng-if="isReporter || isAdmin">
+              <button class="btn btn-outline-primary" ng-click="showUpdateForm = !showUpdateForm">
+                <i class="fas fa-edit me-2"></i>{{showUpdateForm ? 'Hide Update' : 'Update Status'}}
+              </button>
+              <button class="btn btn-outline-danger" ng-click="deleteItem()">
+                <i class="fas fa-trash me-2"></i>Delete
+              </button>
+            </div>
+
+            <!-- Update Form -->
+            <div class="card border-0 bg-light p-3" style="border-radius:12px" ng-if="showUpdateForm">
+              <h6 class="fw-700 mb-3"><i class="fas fa-edit me-2"></i>Update Item</h6>
+              <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select class="form-select" ng-model="updateStatus">
+                  <option value="open">Open</option>
+                  <option value="claimed">Claimed</option>
+                </select>
+              </div>
+              <div class="mb-3" ng-if="updateStatus !== 'open'">
+                <label class="form-label">Venue of Collection <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" ng-model="updateVenue" placeholder="Where to collect the item?">
+                <div class="small text-muted mt-1"><i class="fas fa-info-circle me-1"></i>Required when status is not open</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Private Note <small class="text-muted">(Only you & admin)</small></label>
+                <textarea class="form-control" ng-model="updateInternalMsg" rows="2"></textarea>
+              </div>
+              <div class="d-flex justify-content-end gap-2">
+                <button class="btn btn-outline-secondary btn-sm" ng-click="showUpdateForm=false">Cancel</button>
+                <button class="btn btn-primary btn-sm" ng-click="submitUpdate()" ng-disabled="actionLoading">
+                  <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spinner-wrap" ng-if="!item && !error"><div class="spinner-border text-primary"></div></div>
+  </script>
+
+  <!-- MY ITEMS -->
+  <script type="text/ng-template" id="my-items.html">
+    <div>
+      <div class="page-header">
+        <div class="container">
+          <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-box me-2"></i>My Items</h2>
+            <a href="#!/add-item" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Report New</a>
+          </div>
+        </div>
+      </div>
+      <div class="container pb-5">
+        <div class="alert alert-danger" ng-if="error">{{error}}</div>
+        <div class="spinner-wrap" ng-if="loading"><div class="spinner-border text-primary"></div></div>
+        <div class="empty-state" ng-if="!loading && items.length===0">
+          <i class="fas fa-box-open d-block"></i>
+          <h5>No items yet</h5>
+          <p><a href="#!/add-item">Report your first item</a></p>
+        </div>
+        <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden" ng-if="!loading && items.length>0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead><tr>
+                <th>Item</th><th>Type</th><th>Status</th><th>Location</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody>
+                <tr ng-repeat="item in items">
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <img ng-if="item.image" ng-src="{{item.image}}" class="thumb" alt="">
+                      <div ng-if="!item.image" class="thumb d-flex align-items-center justify-content-center bg-light rounded"><i class="fas fa-image text-muted"></i></div>
+                      <strong class="small">{{item.title}}</strong>
+                    </div>
+                  </td>
+                  <td><span class="badge rounded-pill" ng-class="item.type==='lost'?'badge-lost':'badge-found'">{{item.type}}</span></td>
+                  <td><span class="badge rounded-pill" ng-class="{'badge-open':item.status==='open','badge-claimed':item.status==='claimed'}">{{item.status}}</span></td>
+                  <td class="small text-muted">{{item.location}}</td>
+                  <td class="small text-muted">{{item.date | date:'dd MMM yy'}}</td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a ng-href="#!/item-detail/{{item._id}}" class="btn btn-outline-primary btn-sm"><i class="fas fa-eye"></i></a>
+                      <button class="btn btn-outline-danger btn-sm" ng-click="deleteItem(item._id)"><i class="fas fa-trash"></i></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
+
+  <!-- ADMIN -->
+  <script type="text/ng-template" id="admin.html">
+    <div>
+      <div class="page-header" style="background:linear-gradient(135deg,#1a1a2e,#0f3460)">
+        <div class="container">
+          <h2><i class="fas fa-shield-alt me-2" style="color:#f86f6f"></i>Admin <span style="color:#f86f6f">Portal</span></h2>
+          <p class="mb-0 opacity-75 small">Manage users, items and platform activity</p>
+        </div>
+      </div>
+      <div class="container pb-5">
+        <div class="alert alert-success" ng-if="success">{{success}}</div>
+        <div class="alert alert-danger" ng-if="error">{{error}}</div>
+
+        <!-- TABS -->
+        <div class="btn-group mb-4">
+          <button class="btn btn-outline-primary admin-tab" ng-class="{active: tab==='dashboard'}" ng-click="setTab('dashboard')">
+            <i class="fas fa-chart-bar me-2"></i>Dashboard
+          </button>
+          <button class="btn btn-outline-primary admin-tab" ng-class="{active: tab==='items'}" ng-click="setTab('items')">
+            <i class="fas fa-box me-2"></i>Items
+          </button>
+          <button class="btn btn-outline-primary admin-tab" ng-class="{active: tab==='users'}" ng-click="setTab('users')">
+            <i class="fas fa-users me-2"></i>Users
+          </button>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div ng-if="tab==='dashboard'">
+          <div class="row g-3">
+            <div class="col-6 col-md-4" ng-repeat="s in statsCards">
+              <div class="stat-card card h-100">
+                <div class="stat-icon" ng-style="{'background': s.bg}"><i class="{{s.icon}}" ng-style="{'color': s.color}"></i></div>
+                <div class="fs-2 fw-bold">{{stats[s.key] || 0}}</div>
+                <div class="text-muted small">{{s.label}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ITEMS TAB -->
+        <div ng-if="tab==='items'">
+          <div class="spinner-wrap" ng-if="loading"><div class="spinner-border text-primary"></div></div>
+          <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden" ng-if="!loading">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Reporter</th><th>Claimer</th><th>Date</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr ng-repeat="item in allItems">
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <img ng-if="item.image" ng-src="{{item.image}}" class="thumb">
+                        <div ng-if="!item.image" class="thumb d-flex align-items-center justify-content-center bg-light rounded"><i class="fas fa-image text-muted"></i></div>
+                        <div>
+                          <div class="fw-600 small">{{item.title}}</div>
+                          <div ng-if="item.internalMessage" class="small text-primary"><i class="fas fa-lock me-1"></i>{{item.internalMessage | limitTo:30}}...</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="badge" ng-class="item.type==='lost'?'badge-lost':'badge-found'">{{item.type}}</span></td>
+                    <td><span class="badge" ng-class="{'badge-open':item.status==='open','badge-claimed':item.status==='claimed'}">{{item.status}}</span></td>
+                    <td class="small">{{item.reportedBy.name}}</td>
+                    <td class="small">{{item.claimedBy ? item.claimedBy.name : '—'}}</td>
+                    <td class="small text-muted">{{item.createdAt | date:'dd MMM yy'}}</td>
+                    <td>
+                      <div class="d-flex gap-1">
+                        <a ng-href="#!/item-detail/{{item._id}}" class="btn btn-outline-primary btn-sm"><i class="fas fa-eye"></i></a>
+                        <button class="btn btn-outline-danger btn-sm" ng-click="deleteItem(item._id)"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS TAB -->
+        <div ng-if="tab==='users'">
+          <div class="spinner-wrap" ng-if="loading"><div class="spinner-border text-primary"></div></div>
+          <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden" ng-if="!loading">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead><tr><th>User</th><th>Email</th><th>Phone</th><th>Role</th><th>Joined</th><th>Action</th></tr></thead>
+                <tbody>
+                  <tr ng-repeat="user in users">
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="avatar" style="width:32px;height:32px;font-size:.8rem">{{user.name.charAt(0).toUpperCase()}}</div>
+                        <strong class="small">{{user.name}}</strong>
+                      </div>
+                    </td>
+                    <td class="small">{{user.email}}</td>
+                    <td class="small text-muted">{{user.phone || '—'}}</td>
+                    <td><span class="badge" ng-class="user.role==='admin'?'badge-found':'badge-open'">{{user.role}}</span></td>
+                    <td class="small text-muted">{{user.createdAt | date:'dd MMM yy'}}</td>
+                    <td>
+                      <button ng-if="user.role!=='admin'" class="btn btn-outline-danger btn-sm" ng-click="deleteUser(user._id)">
+                        <i class="fas fa-user-times me-1"></i>Delete
+                      </button>
+                      <span ng-if="user.role==='admin'" class="badge badge-found">Protected</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
