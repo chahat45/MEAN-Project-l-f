@@ -1,7 +1,4 @@
-// =============================================
 // LOST & FOUND PORTAL - AngularJS Application
-// =============================================
-
 var app = angular.module('lostFoundApp', ['ngRoute']);
 
 // ---- ROUTING ----
@@ -18,6 +15,27 @@ app.config(function($routeProvider, $locationProvider) {
     .when('/my-items', { templateUrl: 'my-items.html', controller: 'MyItemsCtrl' })
     .when('/admin', { templateUrl: 'admin.html', controller: 'AdminCtrl' })
     .otherwise({ redirectTo: '/' });
+});
+
+// Route protection using $routeChangeStart
+app.run(function($rootScope, $location, AuthService) {
+  var protectedRoutes = ['/add-item', '/my-items', '/item-detail', '/admin'];
+  var adminRoutes = ['/admin'];
+
+  $rootScope.$on('$routeChangeStart', function(event, next) {
+    var path = $location.path();
+
+    var needsAuth = protectedRoutes.some(function(r) { return path.indexOf(r) === 0; });
+    var needsAdmin = adminRoutes.some(function(r) { return path.indexOf(r) === 0; });
+
+    if (needsAuth && !AuthService.isLoggedIn()) {
+      event.preventDefault();
+      $location.path('/login');
+    } else if (needsAdmin && !AuthService.isAdmin()) {
+      event.preventDefault();
+      $location.path('/');
+    }
+  });
 });
 
 // ---- AUTH SERVICE ----
