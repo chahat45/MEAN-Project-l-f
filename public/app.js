@@ -1,7 +1,7 @@
 // LOST & FOUND PORTAL - AngularJS Application
 var app = angular.module('lostFoundApp', ['ngRoute']);
 
-// ---- ROUTING ----
+// ROUTING 
 app.config(function($routeProvider, $locationProvider) {
   $locationProvider.hashPrefix('!');
 
